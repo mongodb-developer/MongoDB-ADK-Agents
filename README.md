@@ -2,6 +2,8 @@
 
 This project provides an AI-powered agent for grocery shopping, leveraging MongoDB for data storage and Google Vertex AI for semantic search and embeddings.
 
+Check out the [Medium tutorial](https://medium.com/google-cloud/build-a-python-ai-agent-in-15-minutes-with-google-adk-and-mongodb-atlas-vector-search-groceries-b6c4af017629) for more information.
+
 ## Features
 - Semantic product search using MongoDB Atlas Vector Search and Vertex AI embeddings
 - Add products to user carts in MongoDB
