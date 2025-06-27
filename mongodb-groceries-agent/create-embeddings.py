@@ -22,8 +22,8 @@ print(len(docs))
 
 for doc in docs:
     if "embedding" not in doc:
-        print(f"Generating embeddings for {doc["product"]}")
-        product = doc["product"]
+        product = doc.get("product", "")
+        print(f"Generating embeddings for {product}")
         description = doc.get("description", "")
         embedding = generate_embeddings(product + " " + description)
         # Update the document with the new embedding

@@ -1,7 +1,5 @@
 import os
-
 import pymongo
-
 import certifi
 import vertexai
 from google.adk.agents import Agent
@@ -28,7 +26,7 @@ def find_similar_products(query: str) -> str:
       user query about ecommerce products: str
 
     Returns:
-      List of similar products with their IDs.
+      List of similar products.
     """
     client = pymongo.MongoClient(CONNECTION_STRING, tlsCAFile=certifi.where())
     vector_embeddings = generate_embeddings(query)
@@ -70,7 +68,11 @@ def add_to_cart(product: str, username: str) -> str:
     product = products_collection.find_one({"product": product})
 
     cart_collection = client[DATABASE_NAME]["carts"]
-    cart_collection.update_one({"username": username}, {"$addToSet": {"products": product}}, upsert=True)
+    cart_collection.update_one(
+        {"username": username},
+        {"$addToSet": {"products": product}},
+        upsert=True
+    )
 
     return f"Product {product} added to your cart."
 
