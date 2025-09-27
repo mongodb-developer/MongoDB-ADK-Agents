@@ -3,21 +3,16 @@
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "adk",
 	"features": {
-		"ghcr.io/devcontainers/features/java:1": {
-			"version": "21",
-			"installMaven": "true",
-			"mavenVersion": "3.9.10"
-		},
 		"ghcr.io/devcontainers/features/python:1": {}
 	},
-	"updateContentCommand": "bash .devcontainer/install-mongodb-db-tools.sh && bash .devcontainer/setup.sh && bash .devcontainer/import.sh",
+	"updateContentCommand": "bash .devcontainer/install-mongodb-db-tools.sh && bash .devcontainer/import.sh && bash .devcontainer/install-dependencies.sh",
 	"postCreateCommand": "",
 	"postAttachCommand": "",
 	"postStartCommand": "",
 	"customizations": {
 		"codespaces": {
 			"openFiles": [
-				"README.md"
+				"INSTRUCTIONS.md"
 			]
 		},
 		"vscode": {
@@ -28,7 +23,6 @@
 		}
 	},
 	"forwardPorts": [
-		8888,
 		27017
 	],
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
