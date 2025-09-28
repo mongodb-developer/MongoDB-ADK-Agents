@@ -26,7 +26,7 @@ In this step, you’ll create your first AI Agent with ADK. At this stage, the a
     ```python
     root_agent = Agent(
         model="gemini-2.5-flash",     # The LLM your agent will use
-        name="grocery_shopping_agent_start",  # A name for your agent
+        name="grocery_shopping_agent",# A name for your agent
         instruction="",               # You’ll define the agent’s instructions later
         tools=[                       # Empty for now; you’ll add tools later
             # e.g. product search or add-to-cart
