@@ -1,6 +1,5 @@
 import os
 import pymongo
-import certifi
 from google.adk.agents import Agent
 from google import genai
 from google.genai import types
@@ -12,12 +11,13 @@ INVENTORY_COLLECTION_NAME = "inventory"
 CARTS_COLLECTION_NAME = "carts"
 
 genai_client = genai.Client()
-database_client = pymongo.MongoClient(CONNECTION_STRING, tlsCAFile=certifi.where())
+database_client = pymongo.MongoClient(CONNECTION_STRING)
 
 def generate_embeddings(query):
     result = genai_client.models.embed_content(
         model="gemini-embedding-001",
-        contents=query
+        contents=query,
+        config=types.EmbedContentConfig(output_dimensionality=768)
     )
 
     return result.embeddings[0].values
@@ -59,7 +59,6 @@ def find_similar_products(query: str) -> str:
             # Exclude the embedding and price fields from the results
             "$project": {
                 "_id": 0,
-                "sale_price": 0,
                 "gemini_embedding": 0
             }
         }
