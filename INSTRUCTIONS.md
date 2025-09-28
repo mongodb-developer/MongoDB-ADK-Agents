@@ -7,7 +7,7 @@ In this workshop, you’ll build a **Grocery Shopping AI agent** step by step. E
 
 1. On the left-hand sidebar, click on the green leaf icon to open the MongoDB extension.
 2. From the extension page, click on **Groceries Database** to connect to the MongoDB database. 
-3. Explore the database and collections provided.
+3. Explore the **grocery_store** database and the **inventory** collection provided.
 4. Open a few documents and notice their structure.
 
 **<span aria-hidden="true">👉</span> Question to consider:**
