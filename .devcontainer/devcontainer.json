@@ -18,7 +18,7 @@
 		"vscode": {
 			"extensions": [
 				"mongodb.mongodb-vscode",
-        "ms-python.python"
+				"ms-python.python"
 			]
 		}
 	},
