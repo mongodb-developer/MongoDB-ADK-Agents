@@ -1,8 +1,9 @@
 {
-    "mdb.presetConnections": [
-        {
-            "name": "Groceries Database",
-            "connectionString": "mongodb://localhost:27017"
-        }
-    ]
+  "mdb.presetConnections": [
+    {
+      "name": "Groceries Database",
+      "connectionString": "mongodb://localhost:27017"
+    }
+  ],
+  "mdb.showOverviewPageAfterInstall": false
 }
