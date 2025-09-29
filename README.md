@@ -1,125 +1,86 @@
-# MongoDB VertexAI Groceries Agent
+# Workshop Instructions
 
-This project provides an AI-powered agent for grocery shopping, leveraging MongoDB for data storage and Google Vertex AI for semantic search and embeddings.
+Welcome to the **Google ADK and MongoDB Atlas** workshop! <span aria-hidden="true">🎉</span>
+In this workshop, you’ll build a **Grocery Shopping AI agent** step by step. Each exercise combines theory with hands-on practice so you can learn concepts and immediately apply them.
 
-Check out the [Medium tutorial](https://medium.com/google-cloud/build-a-python-ai-agent-in-15-minutes-with-google-adk-and-mongodb-atlas-vector-search-groceries-b6c4af017629) for more information.
+## Exercise 0: Browse the Database
 
-## Features
-- Semantic product search using MongoDB Atlas Vector Search and Vertex AI embeddings
-- Add products to user carts in MongoDB
+1. On the left-hand sidebar, click on the green leaf icon to open the MongoDB extension.
+2. From the extension page, click on **Groceries Database** to connect to the MongoDB database. 
+3. Explore the **grocery_store** database and the **inventory** collection provided.
+4. Open a few documents and notice their structure.
 
-## Prerequisites
-- Python 3.10+
-- Access to Google Cloud Gemini API
-- Access to a MongoDB Atlas cluster (instructions below)
-- Required Python packages (instructions below)
-- Google ADK Python installed (instructions below)
+**<span aria-hidden="true">👉</span> Question to consider:**
+1. What information about the products stands out to you?
+2. How could this data be useful to a shopping agent?
+3. Are there any unusual fields in the documents?
 
-## Loading the Dataset and Generating Embeddings
+## Exercise 1: Initialize the Agent
 
-1. **Create a free MongoDB Atlas cluster**
+In this step, you’ll create your first AI Agent with ADK. At this stage, the agent won’t have any tools — which means it won’t be able to do much yet. This will demonstrate why tools are essential.
 
-- Go to [MongoDB Atlas](https://mongodb.com/try?utm_campaign=devrel&utm_source=github&utm_medium=cta&utm_content=google-cloud-adk-grocery-agent&utm_term=stanimira.vlaeva) and sign up for a free account.
-- Click "Build a Database" and choose the free tier (Shared, M0).
-- Select your preferred cloud provider and region, then click "Create".
-- Create a database user with a username and password.
-- Add your IP address to the IP Access List (or allow access from anywhere for development).
-- Once the cluster is created, click "Connect" and choose "Connect your application" to get your connection string. Use this string for the `CONNECTION_STRING` environment variable in the next steps.
+1. Open the file `mongodb_groceries_agent/agent.py`.
 
-2. **Clone the repository**
+1. You’ll see a few Python imports. You’ll use these later to implement the tools. You'll also see a placeholder for a passkey:
 
-```bash
-git clone https://github.com/mongodb-developer/MongoDB-ADK-Agents.git
-cd MongoDB-VertexAI-ADK
-```
+    ```
+    PASSKEY = "<ASK YOUR INSTRUCTOR FOR THE PASSKEY>"
+    ```
 
-3. **Load the Dataset into MongoDB Atlas**
+    Ask your instructor for the passkey and replace the placeholder with it. This passkey authenticates you to the Google API for this workshop, so you don’t need to provide your own API key—we’ve created one for you.
 
-Import the provided dataset into your MongoDB database using the following command (replace placeholders as needed):
+1. With the API key in place, you’re ready to create your first agent. Add the following code to the file:
 
-```bash
-mongoimport --uri "$CONNECTION_STRING" --db "$DATABASE_NAME" --collection "$COLLECTION_NAME" --type csv --headerline --file mongodb_groceries_agent/dataset.csv
-```
+    ```python
+    root_agent = Agent(
+        model="gemini-2.5-flash",     # The LLM your agent will use
+        name="grocery_shopping_agent",# A name for your agent
+        instruction="",               # You’ll define the agent’s instructions later
+        tools=[                       # Empty for now; you’ll add tools later
+            # e.g. product search or add-to-cart
+        ]
+    )
+    ```
 
-4. **Generate Embeddings for the Inventory**
+    Explanation of each field:
 
-After loading the data, you need to generate vector embeddings for each product. Run the following script:
+    * **model** — The LLM powering the agent (here, Gemini 2.5 Flash).
+    * **name** → A unique identifier for your agent instance.
+    * **instruction** → A system message that defines how the agent should behave (you’ll fill this in later).
+    * **tools** → Python functions that the agent can call (currently empty).
 
-```bash
-python mongodb_groceries_agent/create-embeddings.py
-```
+1. Run the following command in the terminal to start the ADK development UI:
 
-This will process all products in the collection and add/update the embedding field required for semantic search.
+    ```
+    adk web
+    ```
 
-5. **Build a Vector Search Index for the Inventory**
+    You should see:
 
-Open the **Search and Vector Search** tab in the left sidebar in Atlas and create a vector search index on the inventory collection with the following definition:
+    ```
+    INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+    ```
 
-```bash
-{
-  "fields": [
-    {
-      "numDimensions": 3072,
-      "path": "gemini_embedding",
-      "similarity": "cosine",
-      "type": "vector"
-    }
-  ]
-}
-```
+1. Hold CMD (Mac) or CTRL (Windows/Linux) and click on the link: http://127.0.0.1:8000.
 
-## Setup
+    This opens the development UI where you can chat with your agent.
 
-1. **Install the Python dependencies**
+1. Test your Agent
 
-```bash
-pip install -r requirements.txt
-```
+    Try asking your agent:
 
-2. **Install the ADK CLI**
+    ```
+    Find me sourdough bread in the inventory.
+    ```
 
-Follow the [official ADK installation instructions](https://google.github.io/adk-docs/get-started/installation/) or run:
+    **What happens?**
+    Since the agent doesn’t have any tools yet, it cannot actually access the database. Instead, it might:
+        - Make up a product that doesn’t exist in the database.
+        - Ask you follow up questions about which inventory you're referring to.
+        - Attempt to search the web for an answer.
 
-```bash
-pip install google-adk
-```
+    Neither of these behaviors is desirable — we want the agent to only use our inventory.
 
-3. **Set environment variables**
+    **<span aria-hidden="true">👉</span> Discussion point:**
+    What risks do you see if an agent makes up products or fetches information from outside sources instead of the inventory?
 
-Set the following environment variables in a `.env` file:
-
-```bash
-GOOGLE_GENAI_USE_VERTEXAI=FALSE
-
-# Follow the guide: https://www.mongodb.com/docs/guides/atlas/connection-string/
-CONNECTION_STRING="Your MongoDB connection string"
-# Follow the guide: https://cloud.google.com/api-keys/docs/create-manage-api-keys
-GOOGLE_API_KEY="Your Google Cloud API key"
-```
-
-5. **Run the agent using ADK**
-
-Navigate to the `mongodb_groceries_agent` directory and run:
-
-```bash
-adk web
-```
-
-6. Open the web server running at `http://127.0.0.1:8000` and start using the application! 
-
-## Usage
-- The agent will start and be ready to handle product search and cart operations.
-- You can extend the agent with new tools or integrate it into a larger application.
-
-## Project Structure
-- `mongodb_groceries_agent/agent.py`: Main agent logic
-- `mongodb_groceries_agent/create-embeddings.py`: Utility for creating embeddings
-- `mongodb_groceries_agent/dataset.csv`: Example dataset
-
-## Notes
-- Ensure your Google Cloud and MongoDB credentials are valid and have the necessary permissions.
-- For local development, you may want to use a virtual environment.
-- The ADK CLI is required for running and managing agents.
-
-## License
-See [LICENSE](LICENSE) for details.

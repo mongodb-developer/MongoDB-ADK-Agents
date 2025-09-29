@@ -6,9 +6,7 @@
     }
   ],
   "mdb.showOverviewPageAfterInstall": false,
-  "settings": {
-    "workbench.editorAssociations": {
-      "*.md": "vscode.markdown.preview.editor"
-    }
+  "workbench.editorAssociations": {
+    "*.md": "vscode.markdown.preview.editor"
   }
 }
