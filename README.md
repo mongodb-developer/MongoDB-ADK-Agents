@@ -38,7 +38,7 @@ cd MongoDB-VertexAI-ADK
 Import the provided dataset into your MongoDB database using the following command (replace placeholders as needed):
 
 ```bash
-mongoimport --uri "$CONNECTION_STRING" --db "$DATABASE_NAME" --collection "$COLLECTION_NAME" --type csv --headerline --file mongodb-groceries-agent/dataset.csv
+mongoimport --uri "$CONNECTION_STRING" --db "$DATABASE_NAME" --collection "$COLLECTION_NAME" --type csv --headerline --file mongodb_groceries_agent/dataset.csv
 ```
 
 4. **Generate Embeddings for the Inventory**
@@ -46,7 +46,7 @@ mongoimport --uri "$CONNECTION_STRING" --db "$DATABASE_NAME" --collection "$COLL
 After loading the data, you need to generate vector embeddings for each product. Run the following script:
 
 ```bash
-python mongodb-groceries-agent/create-embeddings.py
+python mongodb_groceries_agent/create-embeddings.py
 ```
 
 This will process all products in the collection and add/update the embedding field required for semantic search.
@@ -99,7 +99,7 @@ GOOGLE_API_KEY="Your Google Cloud API key"
 
 5. **Run the agent using ADK**
 
-Navigate to the `mongodb-groceries-agent` directory and run:
+Navigate to the `mongodb_groceries_agent` directory and run:
 
 ```bash
 adk web
@@ -112,9 +112,9 @@ adk web
 - You can extend the agent with new tools or integrate it into a larger application.
 
 ## Project Structure
-- `mongodb-groceries-agent/agent.py`: Main agent logic
-- `mongodb-groceries-agent/create-embeddings.py`: Utility for creating embeddings
-- `mongodb-groceries-agent/dataset.csv`: Example dataset
+- `mongodb_groceries_agent/agent.py`: Main agent logic
+- `mongodb_groceries_agent/create-embeddings.py`: Utility for creating embeddings
+- `mongodb_groceries_agent/dataset.csv`: Example dataset
 
 ## Notes
 - Ensure your Google Cloud and MongoDB credentials are valid and have the necessary permissions.

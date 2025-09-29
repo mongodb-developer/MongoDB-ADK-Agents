@@ -19,7 +19,7 @@ In this workshop, you’ll build a **Grocery Shopping AI agent** step by step. E
 
 In this step, you’ll create your first AI Agent with ADK. At this stage, the agent won’t have any tools — which means it won’t be able to do much yet. This will demonstrate why tools are essential.
 
-1. Open the file `mongodb-groceries-agent/agent.py`.
+1. Open the file `mongodb_groceries_agent/agent.py`.
 
 1. You’ll see a few Python imports. You’ll use these later to implement the tools. You'll also see a placeholder for a passkey:
 

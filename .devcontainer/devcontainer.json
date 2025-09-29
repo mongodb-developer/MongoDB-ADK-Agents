@@ -13,7 +13,7 @@
     "codespaces": {
       "openFiles": [
         "INSTRUCTIONS.md",
-        "mongodb-groceries-agent/agent.py"
+        "mongodb_groceries_agent/agent.py"
       ]
     },
     "vscode": {
