@@ -21,7 +21,15 @@ In this step, you’ll create your first AI Agent with ADK. At this stage, the a
 
 1. Open the file `mongodb-groceries-agent/agent.py`.
 
-2. You’ll see a few Python imports. You’ll use these later to implement the tools. Add the following code after the imports:
+1. You’ll see a few Python imports. You’ll use these later to implement the tools. You'll also see a placeholder for a passkey:
+
+    ```
+    PASSKEY = "<ASK YOUR INSTRUCTOR FOR THE PASSKEY>"
+    ```
+
+    Ask your instructor for the passkey and replace the placeholder with it. This passkey authenticates you to the Google API for this workshop, so you don’t need to provide your own API key—we’ve created one for you.
+
+1. With the API key in place, you’re ready to create your first agent. Add the following code to the file:
 
     ```python
     root_agent = Agent(
@@ -41,7 +49,7 @@ In this step, you’ll create your first AI Agent with ADK. At this stage, the a
     * **instruction** → A system message that defines how the agent should behave (you’ll fill this in later).
     * **tools** → Python functions that the agent can call (currently empty).
 
-3. Run the following command in the terminal to start the ADK development UI:
+1. Run the following command in the terminal to start the ADK development UI:
 
     ```
     adk web
@@ -53,11 +61,11 @@ In this step, you’ll create your first AI Agent with ADK. At this stage, the a
     INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
     ```
 
-4. Hold CMD (Mac) or CTRL (Windows/Linux) and click on the link: http://127.0.0.1:8000.
+1. Hold CMD (Mac) or CTRL (Windows/Linux) and click on the link: http://127.0.0.1:8000.
 
     This opens the development UI where you can chat with your agent.
 
-5. Test your Agent
+1. Test your Agent
 
     Try asking your agent:
 
