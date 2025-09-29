@@ -1,29 +1,35 @@
 {
-	"name": "MongoDB Atlas and Google Cloud ADK Agents",
-	"dockerComposeFile": "docker-compose.yml",
-	"service": "adk",
-	"features": {
-		"ghcr.io/devcontainers/features/python:1": {}
-	},
-	"updateContentCommand": "bash .devcontainer/install-mongodb-db-tools.sh && bash .devcontainer/import.sh && bash .devcontainer/install-dependencies.sh",
-	"postCreateCommand": "",
-	"postAttachCommand": "",
-	"postStartCommand": "",
-	"customizations": {
-		"codespaces": {
-			"openFiles": [
-				"INSTRUCTIONS.md"
-			]
-		},
-		"vscode": {
-			"extensions": [
-				"mongodb.mongodb-vscode",
-				"ms-python.python"
-			]
-		}
-	},
-	"forwardPorts": [
-		27017
-	],
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
+  "name": "MongoDB Atlas and Google Cloud ADK Agents",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "adk",
+  "features": {
+    "ghcr.io/devcontainers/features/python:1": {}
+  },
+  "updateContentCommand": "bash .devcontainer/install-mongodb-db-tools.sh && bash .devcontainer/import.sh && bash .devcontainer/install-dependencies.sh",
+  "postCreateCommand": "",
+  "postAttachCommand": "",
+  "postStartCommand": "",
+  "customizations": {
+    "codespaces": {
+      "openFiles": [
+        "INSTRUCTIONS.md",
+        "mongodb-groceries-agent/agent.py"
+      ]
+    },
+    "vscode": {
+      "extensions": [
+        "mongodb.mongodb-vscode",
+        "ms-python.python"
+      ],
+      "settings": {
+        "workbench.editorAssociations": {
+          "*.md": "vscode.markdown.preview.editor"
+        }
+      }
+    }
+  },
+  "forwardPorts": [
+    27017
+  ],
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
 }

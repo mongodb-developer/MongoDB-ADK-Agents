@@ -5,5 +5,10 @@
       "connectionString": "mongodb://localhost:27017"
     }
   ],
-  "mdb.showOverviewPageAfterInstall": false
+  "mdb.showOverviewPageAfterInstall": false,
+  "settings": {
+    "workbench.editorAssociations": {
+      "*.md": "vscode.markdown.preview.editor"
+    }
+  }
 }
