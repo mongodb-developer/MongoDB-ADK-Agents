@@ -10,12 +10,6 @@
   "postAttachCommand": "",
   "postStartCommand": "",
   "customizations": {
-    "codespaces": {
-      "openFiles": [
-        "README.md",
-        "mongodb_groceries_agent/agent.py"
-      ]
-    },
     "vscode": {
       "extensions": [
         "mongodb.mongodb-vscode",
