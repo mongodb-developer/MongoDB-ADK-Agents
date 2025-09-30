@@ -12,7 +12,7 @@
   "customizations": {
     "codespaces": {
       "openFiles": [
-        "INSTRUCTIONS.md",
+        "README.md",
         "mongodb_groceries_agent/agent.py"
       ]
     },
