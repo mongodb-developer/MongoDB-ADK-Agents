@@ -4,7 +4,6 @@ import certifi
 from google.adk.agents import Agent
 from google import genai
 from google.genai import types
-from utils import set_env
 from mongodb_groceries_agent.utils import set_env
 
 PASSKEY = "<ASK YOUR INSTRUCTOR FOR THE PASSKEY>"
