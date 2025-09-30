@@ -12,8 +12,7 @@ In this workshop, you’ll build a **Grocery Shopping AI agent** step by step. E
 
 **<span aria-hidden="true">👉</span> Question to consider:**
 1. What information about the products stands out to you?
-2. How could this data be useful to a shopping agent?
-3. Are there any unusual fields in the documents?
+2. Are there any unusual fields in the documents?
 
 ## Exercise 1: Initialize the Agent with Google ADK
 
@@ -424,8 +423,8 @@ Test the agent. Here are a few sample prompts:
 - What’s the total cost of my cart?
 ```
 
-## Final
+## 🎉 Congratulations
 
-🎉 Congratulations—you’ve completed the exercises!
+You’ve finished all exercises! Now you have a fully-fledged grocery shopping agent, connected to a vector search database!
 
 Complete the short assessment to claim your **AI Agents with MongoDB Skill Badge** here: [mdb.link/adk-london-badge](https://mdb.link/adk-london-badge).
