@@ -260,3 +260,172 @@ Find me sourdough bread in the inventory.
 
 **<span aria-hidden="true">👉</span> Discussion point:**
 Does the agent respond in a different way? Is it running any tools? What happens when you click on the tool execution boxes?
+
+## Exercise 3: Add to Cart and Calculate Cart Total  
+
+In this exercise, you’ll extend the agent with two new tools that make it possible to manage a shopping cart in MongoDB:  
+
+1. **`add_to_cart`** – adds products to a user’s cart.  
+2. **`calculate_cart_total`** – sums the total cost of products in the cart.  
+
+The cart will be stored in a separate MongoDB collection called **carts**, identified by the username of the shopper. This will require the agent to ask for an username. In a real application, you'd need to implement authorization first.
+
+### Step 1: Implement the Tools  
+
+Open **`mongodb_groceries_agent/agent.py`** and add the following code after the definition of the `find_similar_products` function (around line 75).
+
+The code below contains placeholders that you’ll need to replace with the correct variables or methods. Updating these ensures that the tools work correctly with your database and collections.
+
+```python
+
+def add_to_cart(product: str, username: str) -> str:
+    """Add a product to the user's cart in MongoDB.
+    This function retrieves the product from the inventory collection and adds it to the user's cart.
+    Args:
+      product: The name of the product to add. The product name should match the name in the inventory collection.
+      username: The name of the user.
+    
+    Returns:
+      Success or failure message.
+    """
+    products_collection = database_client[DATABASE_NAME][INVENTORY_COLLECTION_NAME]
+    product_document = <COLLECTION_NAME>.find_one( # <--- 1. Replace with the collection name defined on the previous line
+        {"product": <PRODUCT_NAME>}, # <--- 2. Replace with the product name passed as an argument to the function
+        {
+            # Return only these three fields
+            "product": 1,
+            "sale_price": 1,
+            "category": 1
+        }
+    )
+
+    if (not product_document):
+        return f"Product {product} not found in the inventory."
+
+    # Add the product to the user's cart
+    # If the user does not have a cart, create one
+    # If the user has a cart, add the product to the existing cart
+    # The cart is stored in a separate collection "carts"
+    # The cart is identified by the username of the user
+    if not username:
+        return "Username is required to add a product to the cart."
+
+    cart_collection = database_client[DATABASE_NAME][CARTS_COLLECTION_NAME]
+    cart_collection.update_one(
+        {"username": username},
+        {"$addToSet": {"products": <PRODUCT_DOCUMENT>}}, # <-- 3. Replace with the product document variable defined above
+        upsert=True
+    )
+
+    return f"Product {product_document['product']} added to your cart."
+
+def calculate_cart_total(username: str) -> str:
+    """Calculates the total price of all products in the user cart.
+    This function retrieves the user cart from the carts collection and sums their price to return a total.
+    Args:
+      username: The name of the user.
+    
+    Returns:
+      Total price
+    """
+    cart_document = database_client[DATABASE_NAME][CARTS_COLLECTION_NAME].<FIND_METHOD>( # <-- 4. Replace with the correct collection method to find one document
+        {"username": username},
+        {
+            "_id": 0,
+            "products": 1
+        }
+    )
+
+    total = 0
+    for product in cart_document["products"]:
+        total = total + product["sale_price"]
+
+    return total
+```
+
+Replace the placeholders:
+1. <COLLECTION_NAME> – Replace with the collection variable defined on the previous line.
+2. <PRODUCT_NAME> – Replace with the product argument passed into the function.
+3. <PRODUCT_DOCUMENT> – Replace with the product_document variable defined earlier in the function.
+4. <FIND_METHOD> – Replace with the correct collection method to find a single document.
+
+### Step 2: Update the Agent
+
+Now, update the agent's instruction to explain its new capabilities and add the new tools to the list of tools.
+
+```python
+instruction="""
+You are the **Online Groceries Agent**, a friendly and helpful virtual assistant for our e-commerce grocery store. 
+Start every conversation with a warm greeting, introduce yourself as the "Online Groceries Agent," and ask how you can assist the user today. 
+Your role is to guide customers through their shopping experience.
+
+What you can do:
+- Help users discover and explore products in the store.
+- Suggest alternatives when the exact item is not available.
+- Add products to the user’s shopping cart.
+- Answer product-related questions in a clear and concise way.
+- Return the total in the user’s shopping cart.
+
+Available tools:
+1. **find_similar_products**: Search for products with names semantically similar to the user’s request.  
+2. **add_to_cart**: Add a product to the user’s cart in MongoDB. Pass only the product name (as it appears in the inventory collection) and the user’s username.  
+3. **calculate_cart_total**: Sum the total of all products in a user's cart and return it. Pass the user’s username.
+
+Core guidelines:
+- **Always search first**: If a user asks for a product, call `find_similar_products` before attempting to add it to the cart.  
+- **Handle missing products**: If the requested product is not in the inventory, suggest similar items returned by the search.  
+- **Parallel tool use**: You may call multiple tools in parallel when appropriate (e.g., searching for several items at once).  
+- **Clarify only when necessary**: Ask for more details if the request is unclear and you cannot perform a search.  
+- Keep your tone positive, approachable, and customer-focused throughout the interaction.  
+
+Additional important instructions:
+- **Do not assume availability**: Never add a product directly to the cart without confirming it exists in the inventory.  
+- **Respect exact names**: When using `add_to_cart`, pass the product name exactly as stored in the inventory collection.  
+- **Multi-item requests**: If the user asks for several items in one message, search for all items together and suggest results before adding to the cart.  
+- **Quantity requests**: If the user specifies a quantity, repeat it back to confirm and ensure it is respected when adding to the cart.  
+- **Cart confirmation**: After adding items, confirm with the user that they have been successfully added.  
+- **Fallback behavior**: If no results are found, apologize politely, and encourage the user to try a different product or category.  
+- **Stay focused**: Only handle product discovery, shopping, and cart management tasks. Politely decline requests unrelated to groceries.  
+- **Answering product questions**: If the question is about a product (e.g., "Is this organic?" or "How much does it cost?"), use the search results to answer. If the information is not available, respond transparently that you don’t have that detail.  
+
+Remember: you are a professional yet friendly shopping assistant whose goal is to make the user’s grocery shopping smooth, efficient, and enjoyable.
+"""
+
+root_agent = Agent(
+    model="gemini-2.5-flash",
+    name="grocery_shopping_agent",
+    instruction=instruction,
+    tools=[
+        find_similar_products,
+        # 5. Add the two new tools to the list
+        <ADD_TO_CART_TOOL>,
+        <CALCULATE_TOTAL_TOOL>
+    ]
+)
+```
+
+Replace the two placeholders at the bottom:
+- `<ADD_TO_CART_TOOL>`
+- `<CALCULATE_TOTAL_TOOL>`
+
+
+Stop the running process in the terminal by pressing `Ctrl+C`. Then, run the dev server command again:
+
+```
+adk web
+```
+
+Test the agent. Here are a few sample prompts:
+
+```
+- Add milk, flour, and chocolate to my cart.
+- Show me the best-rated products.
+- I want to bake a chocolate cake—find me the ingredients I’ll need.
+- What’s the total cost of my cart?
+```
+
+## Final
+
+🎉 Congratulations—you’ve completed the exercises!
+
+Complete the short assessment to claim your **AI Agents with MongoDB Skill Badge** here: [mdb.link/adk-london-badge](https://mdb.link/adk-london-badge).
