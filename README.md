@@ -6,7 +6,7 @@ In this workshop, you’ll build a **Grocery Shopping AI agent** step by step. E
 ## Exercise 0: Browse the Database
 
 1. On the left-hand sidebar, click on the green leaf icon to open the MongoDB extension.
-2. From the extension page, click on **Groceries Database** to connect to the MongoDB database. 
+2. From the extension page, click on **Local MongoDB Atlas** to connect to the MongoDB database. 
 3. Explore the **grocery_store** database and the **inventory** collection provided.
 4. Open a few documents and notice their structure.
 
@@ -45,9 +45,9 @@ In this step, you’ll create your first AI Agent with ADK. At this stage, the a
     Explanation of each field:
 
     * **model** — The LLM powering the agent (here, Gemini 2.5 Flash).
-    * **name** → A unique identifier for your agent instance.
-    * **instruction** → A system message that defines how the agent should behave (you’ll fill this in later).
-    * **tools** → Python functions that the agent can call (currently empty).
+    * **name** — A unique identifier for your agent instance.
+    * **instruction** — A system message that defines how the agent should behave (you’ll fill this in later).
+    * **tools** — Python functions that the agent can call (currently empty).
 
 1. Run the following command in the terminal to start the ADK development UI:
 
@@ -75,11 +75,12 @@ In this step, you’ll create your first AI Agent with ADK. At this stage, the a
 
     **What happens?**
     Since the agent doesn’t have any tools yet, it cannot actually access the database. Instead, it might:
-        - Make up a product that doesn’t exist in the database.
-        - Ask you follow up questions about which inventory you're referring to.
-        - Attempt to search the web for an answer.
 
-    Neither of these behaviors is desirable — we want the agent to only use our inventory.
+    - Make up a product that doesn’t exist in the database.
+    - Ask you follow up questions about which inventory you're referring to.
+    - Attempt to search the web for an answer.
+
+    Neither of these behaviors is desirable — you want the agent to only use the grocery store inventory.
 
     **<span aria-hidden="true">👉</span> Discussion point:**
     What risks do you see if an agent makes up products or fetches information from outside sources instead of the inventory?
@@ -91,10 +92,12 @@ In this exercise, you’ll add a tool that lets the agent find products relevant
 ### Step 1: Generate Embeddings  
 
 1. Open the MongoDB extension by clicking the green MongoDB leaf in the sidebar.  
-2. Expand the **Groceries Database** connection, then the **grocery_store** database and finally, the **inventory** collection.  
-3. Open any document. Notice the **gemini_embedding** field: it already contains the product’s vector embedding.  
+2. Expand the **Local MongoDB Atlas** connection, then the **grocery_store** database and finally, the **inventory** collection.  
+3. Open any MongoDB document from the **inventory** collection. Notice the **gemini_embedding** field: it already contains the product’s vector embedding. 
 
 We pre-generated these embeddings to save time and resources. Otherwise, every workshop attendee would need to re-run the same embedding process—producing identical vectors at unnecessary cost. For this exercise, you can work directly with the stored vectors.  
+
+***Hint***: Don't close the document—you'll need it for the next steps.
 
 ### Step 2: Create a Vector Search Index
 
@@ -112,29 +115,31 @@ Open **`mongodb_groceries_agent/create-vector-search-index.py`** and fill in the
 
 1. `<DATABASE_NAME>`: the name of the database that you explored through the MongoDB extension
 2. `<COLLECTION_NAME>`: the collection with grocery products  
-3. `<VECTOR_FIELD_IN_THE_DOCUMENT>`: the field storing the embedding (the numeric array)  
-4. `<LENGTH_OF_THE_VECTOR>`: the size of the embedding array  
+3. `<VECTOR_FIELD_IN_THE_DOCUMENT>`: the name of the field storing the vector embedding
+4. `<LENGTH_OF_THE_VECTOR>`: the size of the embedding array.
+    - ***Hint***: The size is one of 128, 256, 512, 768, 1536, or 2048. Check the number of lines in the MongoDB document you opened earlier.
 5. `<VECTOR_SEARCH_DEFINITION>`: use the predefined variable in the script and pass it into the method  
 
-In the bottom panel, open a new terminal tab and run the script to create the index:
+Stop the running process in the terminal by pressing CTRL+C. Then, execute the vector creation script:
 
 ```bash
 python mongodb_groceries_agent/create-vector-search-index.py
 ```
 
-Creating the index takes only a few seconds for the 5000 documents you have in the dataset. After a 10-second timeout, the script will display the collection’s search indexes. At that point, your vector search index is ready and can be used by the agent to find similar products.  
+After a 10-second timeout, the script will display the collection’s search indexes. Pay attention to the status of the index you just created—it may show as ***BUILDING*** or ***READY***. The collection has only 5000 documents, so by the time you start using the index, it will be fully built with status ***READY***.
 
-### Step 3: Implement the Vector Search Tool  
+### Step 3: Implement the Vector Search Tool
 
-With the index in place, let’s wire up the agent so it can actually use it.  
+With the index in place, let’s implement the search tool that the agent will use to find similar products.
 
 In this step, you’ll:  
-- Configure placeholders for your database and collection.  
-- Define a helper to generate embeddings with Gemini.  
-- Implement the `find_similar_products` tool that performs a vector search against MongoDB.  
-- Register the tool with the agent so it becomes part of the shopping workflow.  
+- Define a helper function to generate embeddings with Gemini. The function will be used to transform the user questions into vector embeddings.
+- Implement the `find_similar_products` tool that performs a vector search against the MongoDB `inventory` collection. 
+- Register the tool with the agent so it becomes part of the shopping workflow. 
 
-Open **`mongodb_groceries_agent/agent.py`** and add the following code:  
+Open **`mongodb_groceries_agent/agent.py`** and replace the `root_agent` variable with the following code.
+
+**<span aria-hidden="true">️⚠️</span> Important**: Don't delete the imports or the `GOOGLE_API_KEY` variable!
 
 ```python
 # Initialize the GenAI client to vectorize the user queries
@@ -201,19 +206,12 @@ Your role is to guide customers through their shopping experience.
 What you can do:
 - Help users discover and explore products in the store.
 - Suggest alternatives when the exact item is not available.
-- Add products to the user’s shopping cart.
-- Answer product-related questions in a clear and concise way.
-- Return the total in the user’s shopping cart.
 
 Available tools:
 1. **find_similar_products**: Search for products with names semantically similar to the user’s request.  
-2. **add_to_cart**: Add a product to the user’s cart in MongoDB. Pass only the product name (as it appears in the inventory collection) and the user’s username.  
-3. **calculate_cart_total**: Sum the total of all products in a user's cart and return it. Pass the user’s username.
-
 Core guidelines:
-- **Always search first**: If a user asks for a product, call `find_similar_products` before attempting to add it to the cart.  
+- **Always search first**: If a user asks for a product, call `find_similar_products`.  
 - **Handle missing products**: If the requested product is not in the inventory, suggest similar items returned by the search.  
-- **Parallel tool use**: You may call multiple tools in parallel when appropriate (e.g., searching for several items at once).  
 - **Clarify only when necessary**: Ask for more details if the request is unclear and you cannot perform a search.  
 - Keep your tone positive, approachable, and customer-focused throughout the interaction.  
 
@@ -222,9 +220,8 @@ Additional important instructions:
 - **Respect exact names**: When using `add_to_cart`, pass the product name exactly as stored in the inventory collection.  
 - **Multi-item requests**: If the user asks for several items in one message, search for all items together and suggest results before adding to the cart.  
 - **Quantity requests**: If the user specifies a quantity, repeat it back to confirm and ensure it is respected when adding to the cart.  
-- **Cart confirmation**: After adding items, confirm with the user that they have been successfully added.  
 - **Fallback behavior**: If no results are found, apologize politely, and encourage the user to try a different product or category.  
-- **Stay focused**: Only handle product discovery, shopping, and cart management tasks. Politely decline requests unrelated to groceries.  
+- **Stay focused**: Only handle product discovery. Politely decline requests unrelated to groceries.  
 - **Answering product questions**: If the question is about a product (e.g., "Is this organic?" or "How much does it cost?"), use the search results to answer. If the information is not available, respond transparently that you don’t have that detail.  
 
 Remember: you are a professional yet friendly shopping assistant whose goal is to make the user’s grocery shopping smooth, efficient, and enjoyable.
@@ -234,14 +231,20 @@ Remember: you are a professional yet friendly shopping assistant whose goal is t
 root_agent = Agent(
     model="gemini-2.5-flash",
     name="grocery_shopping_agent",
-    instruction=instruction
+    instruction=instruction,
     tools=[
-        find_similar_products
+        <TOOL_FUNCTION_NAME> # <-- 4. Replace with the product search function declared above.
     ]
 )
 ```
 
-Finally, restart the agent with the following command:
+Replace any of the placeholders with the correct values:
+    1. `<OUTPUT_VECTOR_SIZE>` - Replace with the desired size of the vector. This should match the vector size in the document.
+    2. `<VECTOR_FIELD_IN_THE_DOCUMENT` — Replace with the document field that holds the vector embedding
+    3. `<VECTOR_FIELD_IN_THE_DOCUMENT>` (again) — Replace with the document field the holds the embedding. This will reduce the network traffic and the tokens the agent needs to include in LLM prompt.
+    4.  `<TOOL_FUNCTION_NAME>` - Replace with the product search function declared above.
+
+Finally, start the agent development server again with the following command:
 
 ```
 adk web
