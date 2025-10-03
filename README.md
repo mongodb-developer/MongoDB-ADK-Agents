@@ -1,6 +1,7 @@
 # Workshop Instructions
 
 Welcome to the **Google ADK and MongoDB Atlas** workshop! <span aria-hidden="true">🎉</span>
+
 In this workshop, you’ll build a **Grocery Shopping AI agent** step by step. Each exercise combines theory with hands-on practice so you can learn concepts and immediately apply them.
 
 ## Exercise 0: Browse the Database
@@ -428,3 +429,9 @@ Test the agent. Here are a few sample prompts:
 You’ve finished all exercises! Now you have a fully-fledged grocery shopping agent, connected to a vector search database!
 
 Complete the short assessment to claim your **AI Agents with MongoDB Skill Badge** here: [mdb.link/adk-london-badge](https://mdb.link/adk-london-badge).
+
+Explore all free [MongoDB Skill Badge courses](https://learn.mongodb.com/skills?team=devrel) and level up your skills today!
+
+
+
+
