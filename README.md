@@ -47,10 +47,29 @@ GOOGLE_API_KEY="your Gemini API key"
 
 ### 4. Load the dataset
 
+`dataset.csv` holds 27,555 products. With a 1536-dimension vector on each one,
+the embedded collection runs to roughly 550 MB, which does not fit the free
+tier's 512 MB, and embedding all of them is 27,555 API calls.
+
+For a free cluster, load a subset. 5,000 products is plenty to see semantic
+search work. Product descriptions contain line breaks, so take the subset with
+a CSV parser rather than `head`, which would cut a record in half:
+
 ```bash
+python3 -c "
+import csv, itertools
+with open('mongodb_groceries_agent/dataset.csv', newline='') as src, \
+     open('/tmp/subset.csv', 'w', newline='') as dst:
+    reader, writer = csv.reader(src), csv.writer(dst)
+    writer.writerows(itertools.islice(reader, 5001))
+"
+
 mongoimport --uri "$CONNECTION_STRING" --db grocery_store --collection inventory \
-  --type csv --headerline --file mongodb_groceries_agent/dataset.csv
+  --type csv --headerline --file /tmp/subset.csv
 ```
+
+On a cluster with room for it, swap `/tmp/subset.csv` for the full
+`mongodb_groceries_agent/dataset.csv`.
 
 ### 5. Generate embeddings
 
@@ -60,7 +79,8 @@ python mongodb_groceries_agent/create-embeddings.py
 
 This embeds every product with `gemini-embedding-2` at 1536 dimensions and
 stores the vector in an `embedding` field. Documents that already have one are
-skipped, so it is safe to re-run.
+skipped, so it is safe to re-run after an interruption or after loading more
+products.
 
 ### 6. Create the vector search index
 
