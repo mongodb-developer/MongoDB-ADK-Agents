@@ -1,125 +1,123 @@
-# MongoDB VertexAI Groceries Agent
+# MongoDB Groceries Agent
 
-This project provides an AI-powered agent for grocery shopping, leveraging MongoDB for data storage and Google Vertex AI for semantic search and embeddings.
+An AI grocery-shopping agent built with [Google ADK](https://adk.dev) and MongoDB
+Vector Search. The agent finds products semantically, answers questions about
+them, and manages a shopping cart.
 
-Check out the [Medium tutorial](https://medium.com/google-cloud/build-a-python-ai-agent-in-15-minutes-with-google-adk-and-mongodb-atlas-vector-search-groceries-b6c4af017629) for more information.
+Check out the [Medium tutorial](https://medium.com/google-cloud/build-a-python-ai-agent-in-15-minutes-with-google-adk-and-mongodb-atlas-vector-search-groceries-b6c4af017629) for a walkthrough.
 
 ## Features
-- Semantic product search using MongoDB Atlas Vector Search and Vertex AI embeddings
-- Add products to user carts in MongoDB
+
+- Semantic product search with MongoDB Vector Search and Gemini embeddings
+- Category pre-filtering, so a search can be scoped to one section of the store
+- Cart management, with quantities, backed by MongoDB
 
 ## Prerequisites
+
 - Python 3.10+
-- Access to Google Cloud Gemini API
-- Access to a MongoDB Atlas cluster (instructions below)
-- Required Python packages (instructions below)
-- Google ADK Python installed (instructions below)
+- A Gemini API key ([AI Studio](https://aistudio.google.com/apikey))
+- A MongoDB Atlas cluster (instructions below)
 
-## Loading the Dataset and Generating Embeddings
+## Setup
 
-1. **Create a free MongoDB Atlas cluster**
+### 1. Create a free MongoDB Atlas cluster
 
-- Go to [MongoDB Atlas](https://mongodb.com/try?utm_campaign=devrel&utm_source=github&utm_medium=cta&utm_content=google-cloud-adk-grocery-agent&utm_term=stanimira.vlaeva) and sign up for a free account.
-- Click "Build a Database" and choose the free tier (Shared, M0).
-- Select your preferred cloud provider and region, then click "Create".
-- Create a database user with a username and password.
-- Add your IP address to the IP Access List (or allow access from anywhere for development).
-- Once the cluster is created, click "Connect" and choose "Connect your application" to get your connection string. Use this string for the `CONNECTION_STRING` environment variable in the next steps.
+- Go to [MongoDB Atlas](https://mongodb.com/try?utm_campaign=devrel&utm_source=github&utm_medium=cta&utm_content=google-cloud-adk-grocery-agent&utm_term=stanimira.vlaeva) and sign up.
+- Click "Build a Database" and choose the free tier (M0).
+- Create a database user, and add your IP to the IP Access List.
+- Click "Connect" > "Connect your application" to get your connection string.
 
-2. **Clone the repository**
+### 2. Clone and install
 
 ```bash
 git clone https://github.com/mongodb-developer/MongoDB-ADK-Agents.git
-cd MongoDB-VertexAI-ADK
+cd MongoDB-ADK-Agents
+pip install -r requirements.txt
 ```
 
-3. **Load the Dataset into MongoDB Atlas**
+### 3. Set environment variables
 
-Import the provided dataset into your MongoDB database using the following command (replace placeholders as needed):
+Create a `.env` file in the repository root:
 
 ```bash
-mongoimport --uri "$CONNECTION_STRING" --db "$DATABASE_NAME" --collection "$COLLECTION_NAME" --type csv --headerline --file mongodb-groceries-agent/dataset.csv
+GOOGLE_GENAI_USE_VERTEXAI=FALSE
+CONNECTION_STRING="your MongoDB connection string"
+GOOGLE_API_KEY="your Gemini API key"
 ```
 
-4. **Generate Embeddings for the Inventory**
-
-After loading the data, you need to generate vector embeddings for each product. Run the following script:
+### 4. Load the dataset
 
 ```bash
-python mongodb-groceries-agent/create-embeddings.py
+mongoimport --uri "$CONNECTION_STRING" --db grocery_store --collection inventory \
+  --type csv --headerline --file mongodb_groceries_agent/dataset.csv
 ```
 
-This will process all products in the collection and add/update the embedding field required for semantic search.
-
-5. **Build a Vector Search Index for the Inventory**
-
-Open the **Search and Vector Search** tab in the left sidebar in Atlas and create a vector search index on the inventory collection with the following definition:
+### 5. Generate embeddings
 
 ```bash
+python mongodb_groceries_agent/create-embeddings.py
+```
+
+This embeds every product with `gemini-embedding-2` at 1536 dimensions and
+stores the vector in an `embedding` field. Documents that already have one are
+skipped, so it is safe to re-run.
+
+### 6. Create the vector search index
+
+```bash
+python mongodb_groceries_agent/create-vector-search-index.py
+```
+
+The script waits until the index is queryable. It creates:
+
+```json
 {
   "fields": [
     {
-      "numDimensions": 3072,
-      "path": "gemini_embedding",
-      "similarity": "cosine",
-      "type": "vector"
-    }
+      "type": "vector",
+      "path": "embedding",
+      "numDimensions": 1536,
+      "similarity": "dotProduct"
+    },
+    { "type": "filter", "path": "category" }
   ]
 }
 ```
 
-## Setup
+`dotProduct` works here because `gemini-embedding-2` returns unit-length vectors,
+including at truncated dimensions. If you switch to a model that does not
+normalize, such as `gemini-embedding-001` below its full 3072 dimensions, either
+normalize the vectors yourself or use `cosine`, which ignores magnitude.
+Using `dotProduct` on unnormalized vectors degrades results silently.
 
-1. **Install the Python dependencies**
+No quantization is configured: it starts paying off above roughly 100,000
+vectors, and this dataset is smaller than that.
 
-```bash
-pip install -r requirements.txt
-```
-
-2. **Install the ADK CLI**
-
-Follow the [official ADK installation instructions](https://google.github.io/adk-docs/get-started/installation/) or run:
-
-```bash
-pip install google-adk
-```
-
-3. **Set environment variables**
-
-Set the following environment variables in a `.env` file:
-
-```bash
-GOOGLE_GENAI_USE_VERTEXAI=FALSE
-
-# Follow the guide: https://www.mongodb.com/docs/guides/atlas/connection-string/
-CONNECTION_STRING="Your MongoDB connection string"
-# Follow the guide: https://cloud.google.com/api-keys/docs/create-manage-api-keys
-GOOGLE_API_KEY="Your Google Cloud API key"
-```
-
-5. **Run the agent using ADK**
-
-Navigate to the `mongodb-groceries-agent` directory and run:
+### 7. Run the agent
 
 ```bash
 adk web
 ```
 
-6. Open the web server running at `http://127.0.0.1:8000` and start using the application! 
+Run it from the repository root, not from inside `mongodb_groceries_agent/`.
+ADK looks for agent packages in the directory you launch it from. Then open
+http://127.0.0.1:8000 and pick `mongodb_groceries_agent`.
 
-## Usage
-- The agent will start and be ready to handle product search and cart operations.
-- You can extend the agent with new tools or integrate it into a larger application.
+## Project structure
 
-## Project Structure
-- `mongodb-groceries-agent/agent.py`: Main agent logic
-- `mongodb-groceries-agent/create-embeddings.py`: Utility for creating embeddings
-- `mongodb-groceries-agent/dataset.csv`: Example dataset
+| Path | What it is |
+|---|---|
+| `mongodb_groceries_agent/agent.py` | The agent and its tools |
+| `mongodb_groceries_agent/embeddings.py` | Embedding helpers shared by the agent and the indexer |
+| `mongodb_groceries_agent/create-embeddings.py` | Embeds the inventory |
+| `mongodb_groceries_agent/create-vector-search-index.py` | Creates the vector search index |
+| `mongodb_groceries_agent/utils.py` | Workshop passkey helper |
+| `mongodb_groceries_agent/dataset.csv` | The product dataset |
+| `workshop/` | Starter and solution files for the instructor-led lab. See [workshop/README.md](workshop/README.md) |
 
 ## Notes
-- Ensure your Google Cloud and MongoDB credentials are valid and have the necessary permissions.
-- For local development, you may want to use a virtual environment.
-- The ADK CLI is required for running and managing agents.
 
-## License
-See [LICENSE](LICENSE) for details.
+- `username` is passed to the cart tools as a regular argument, which keeps the
+  workshop simple. In production, read the identity from the session
+  (`ToolContext.state`) instead: anything the model supplies, the model can get
+  wrong, and nothing stops one user from naming another's cart.

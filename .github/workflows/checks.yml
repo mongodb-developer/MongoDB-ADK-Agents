@@ -1,0 +1,57 @@
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  solutions-in-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # The solutions are generated from agent.py. This fails if someone edits
+      # one directly, or changes agent.py without regenerating.
+      - run: python3 workshop/generate_solutions.py --check
+
+  starter-placeholders:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # The starter files are the lab's exercise; losing a placeholder means
+      # shipping an answer. The counts here are the exercise itself.
+      - name: starter files still have their placeholders
+        run: |
+          set -eu
+          agent=$(grep -c '<[A-Z_ ]*>' workshop/starter/agent.py)
+          index=$(grep -c '<[A-Z_]*>' workshop/starter/create-vector-search-index.py)
+          echo "agent.py: $agent placeholder(s), create-vector-search-index.py: $index"
+          test "$agent" -ge 1
+          test "$index" -ge 6
+
+  no-placeholders-in-shipped-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # The tutorial path must be runnable as-is.
+      - run: |
+          set -eu
+          if grep -rn '<[A-Z_]\{3,\}>' mongodb_groceries_agent/; then
+            echo "mongodb_groceries_agent/ must not contain placeholders" >&2
+            exit 1
+          fi
+          echo "no placeholders in mongodb_groceries_agent/"
+
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          python3 -m compileall -q mongodb_groceries_agent workshop/solutions
+          python3 -m compileall -q workshop/generate_solutions.py

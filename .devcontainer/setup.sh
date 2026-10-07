@@ -1,8 +1,9 @@
 #!/bin/bash
+#
+# Python itself comes from the devcontainer python feature; this just installs
+# the project's dependencies.
 
-echo ✅ APT GET UPDATE
-echo ✅ --------------
-sudo apt-get update -y
+set -euo pipefail
 
-sudo apt-get install python3.8
-
+echo "Installing Python dependencies..."
+pip install --no-cache-dir -r requirements.txt
