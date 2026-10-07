@@ -104,6 +104,7 @@ The script waits until the index is queryable. It creates:
 }
 ```
 
+MongoDB offers `euclidean`, `cosine` and `dotProduct`.
 `dotProduct` works here because `gemini-embedding-2` returns unit-length vectors,
 including at truncated dimensions. If you switch to a model that does not
 normalize, such as `gemini-embedding-001` below its full 3072 dimensions, either

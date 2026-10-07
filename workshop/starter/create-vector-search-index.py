@@ -32,10 +32,12 @@ index_definition = {
                 "path": "<VECTOR_FIELD_IN_THE_DOCUMENT>",
                 # 4. How many numbers are in that array?
                 "numDimensions": <LENGTH_OF_THE_VECTOR>,
-                # 5. "dotProduct" or "cosine"? Both compare direction. dotProduct
-                #    also accounts for magnitude, which makes it cheaper but only
-                #    correct when the vectors are unit length. Check the model's
-                #    docs before you choose.
+                # 5. "euclidean", "cosine" or "dotProduct"? euclidean measures
+                #    distance between the vectors' endpoints; cosine measures the
+                #    angle and ignores length; dotProduct measures both, which is
+                #    cheaper than cosine but only correct when every vector has a
+                #    length of exactly 1. Check the embedding model's docs before
+                #    you choose.
                 "similarity": "<SIMILARITY_FUNCTION>",
             },
             # Indexed separately so $vectorSearch can pre-filter on it. You will

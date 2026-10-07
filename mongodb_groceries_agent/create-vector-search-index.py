@@ -26,9 +26,11 @@ index_definition = {
                 "type": "vector",
                 "path": "embedding",
                 "numDimensions": 1536,
-                # dotProduct because gemini-embedding-2 returns unit-length
-                # vectors. For embeddings that are not normalized, use cosine:
-                # it ignores magnitude, where dotProduct does not.
+                # One of euclidean, cosine or dotProduct. dotProduct here
+                # because gemini-embedding-2 returns unit-length vectors, and it
+                # is cheaper than cosine for those. For embeddings that are not
+                # normalized, use cosine: it ignores magnitude, where dotProduct
+                # does not.
                 #
                 # No quantization: it starts paying off above ~100k vectors and
                 # this collection holds 5,000.
