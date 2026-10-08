@@ -45,6 +45,34 @@ jobs:
           fi
           echo "no placeholders in mongodb_groceries_agent/"
 
+  credentials-before-use:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # set_env(PASSKEY) is what puts GOOGLE_API_KEY in the environment, and
+      # genai.Client() raises without it. Anything that builds a client before
+      # that call makes the agent fail to import, which surfaces as a 404 on
+      # /run_sse rather than anything that points at the cause.
+      - run: |
+          python3 - <<'PY'
+          import pathlib, sys
+          bad = []
+          for f in sorted(pathlib.Path("workshop/solutions").glob("*.py")):
+              text = f.read_text()
+              if "genai.Client(" not in text:
+                  continue
+              if "set_env(" not in text:
+                  bad.append(f"{f}: builds a client but never calls set_env")
+              elif text.index("genai.Client(") < text.index("set_env("):
+                  bad.append(f"{f}: builds a client before set_env")
+          for b in bad:
+              print(b, file=sys.stderr)
+          sys.exit(1 if bad else 0)
+          PY
+
   syntax:
     runs-on: ubuntu-latest
     steps:

@@ -2,11 +2,40 @@ import os
 
 import pymongo
 from google.adk.agents import Agent
-
-from mongodb_groceries_agent.embeddings import embed_query
+from google import genai
+from google.genai import types
 
 CONNECTION_STRING = os.environ.get("CONNECTION_STRING")
 database_client = pymongo.MongoClient(CONNECTION_STRING)
+
+# gemini-embedding-2 returns unit-length vectors, which is what lets the index
+# use dotProduct. Both constants must match the ones used to embed the
+# inventory, or queries and products land in different vector spaces.
+EMBEDDING_MODEL = "gemini-embedding-2"
+EMBEDDING_DIMENSIONS = 1536
+
+genai_client = genai.Client()
+
+
+def embed_query(query: str) -> list[float]:
+    """Turn the shopper's words into a vector.
+
+    Args:
+        query: What the shopper asked for.
+
+    Returns:
+        A single embedding.
+    """
+    # This model has no task_type parameter: the task goes in the text. The
+    # query prefix pairs with the "title: ... | text: ..." prefix used when the
+    # products were embedded.
+    result = genai_client.models.embed_content(
+        model=EMBEDDING_MODEL,
+        contents=f"task: search result | query: {query}",
+        config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIMENSIONS),
+    )
+    return result.embeddings[0].values
+
 
 DATABASE_NAME = "grocery_store"
 INVENTORY_COLLECTION_NAME = "inventory"

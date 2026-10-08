@@ -9,10 +9,45 @@ import os
 
 import pymongo
 from dotenv import load_dotenv
-
-from mongodb_groceries_agent.embeddings import EMBEDDING_DIMENSIONS, embed_documents
+from google import genai
+from google.genai import types
 
 load_dotenv()
+
+# Must match EMBEDDING_MODEL and EMBEDDING_DIMENSIONS in agent.py. Changing
+# either means re-embedding everything: the two models' vector spaces are not
+# compatible, and the search index pins numDimensions.
+EMBEDDING_MODEL = "gemini-embedding-2"
+EMBEDDING_DIMENSIONS = 1536
+
+genai_client = genai.Client()
+
+
+def embed_documents(documents: list[dict]) -> list[list[float]]:
+    """Embed inventory documents for storage, one vector per document.
+
+    Args:
+        documents: Inventory documents, each with a `product` and `description`.
+
+    Returns:
+        One embedding per input document, in the same order.
+    """
+    texts = [
+        f"title: {doc.get('product') or 'none'} | text: {doc.get('description', '')}"
+        for doc in documents
+    ]
+    # One Content per input, each holding a single Part. Several Parts inside one
+    # Content are aggregated into a single vector instead, with no error, so the
+    # nesting here is load-bearing rather than ceremony.
+    result = genai_client.models.embed_content(
+        model=EMBEDDING_MODEL,
+        contents=[
+            types.Content(parts=[types.Part.from_text(text=text)]) for text in texts
+        ],
+        config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIMENSIONS),
+    )
+    return [embedding.values for embedding in result.embeddings]
+
 
 DATABASE_NAME = "grocery_store"
 COLLECTION_NAME = "inventory"

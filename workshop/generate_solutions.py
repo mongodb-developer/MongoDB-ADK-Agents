@@ -24,10 +24,13 @@ PREAMBLE = '''import os
 
 import pymongo
 from google.adk.agents import Agent
+from google import genai
+from google.genai import types
 
-from mongodb_groceries_agent.embeddings import embed_query
 from mongodb_groceries_agent.utils import set_env
 
+# set_env puts GOOGLE_API_KEY and CONNECTION_STRING in the environment, so it
+# has to run before anything that reads them.
 PASSKEY = "<ASK YOUR INSTRUCTOR FOR THE PASSKEY>"
 set_env(PASSKEY)
 
@@ -37,6 +40,17 @@ CONNECTION_STRING = os.environ.get("CONNECTION_STRING")
 
 # Collection handles, in the order the finished agent declares them. The
 # search-only solutions never touch carts, so that pair is dropped for them.
+EMBEDDING = '''# gemini-embedding-2 returns unit-length vectors, which is what lets the index
+# use dotProduct. Both constants must match the ones used to embed the
+# inventory, or queries and products land in different vector spaces.
+EMBEDDING_MODEL = "gemini-embedding-2"
+EMBEDDING_DIMENSIONS = 1536
+
+genai_client = genai.Client()
+
+
+'''
+
 CONSTANTS = '''DATABASE_NAME = "grocery_store"
 INVENTORY_COLLECTION_NAME = "inventory"
 CARTS_COLLECTION_NAME = "carts"
@@ -148,6 +162,7 @@ def build() -> dict[str, str]:
     source = AGENT.read_text()
     tree = ast.parse(source)
 
+    embed = top_level(source, tree, "embed_query")
     find = top_level(source, tree, "find_similar_products")
     add = top_level(source, tree, "add_to_cart")
     total = top_level(source, tree, "calculate_cart_total")
@@ -160,16 +175,22 @@ def build() -> dict[str, str]:
         "01-bare-agent.py": PREAMBLE + BARE_AGENT,
         "02-vector-search.py": (
             PREAMBLE
+            + EMBEDDING
             + CONSTANTS_SEARCH_ONLY
             + "\n\n"
+            + embed
+            + "\n"
             + without_category(find)
             + "\n\n"
             + search_only.format(category_note="")
         ),
         "03-filtered-search.py": (
             PREAMBLE
+            + EMBEDDING
             + CONSTANTS_SEARCH_ONLY
             + "\n\n"
+            + embed
+            + "\n"
             + find
             + "\n\n"
             + search_only.format(
@@ -181,8 +202,11 @@ def build() -> dict[str, str]:
         ),
         "04-cart-tools.py": (
             PREAMBLE
+            + EMBEDDING
             + CONSTANTS
             + "\n\n"
+            + embed
+            + "\n"
             + find
             + "\n\n"
             + add

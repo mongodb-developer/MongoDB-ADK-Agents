@@ -2,10 +2,13 @@ import os
 
 import pymongo
 from google.adk.agents import Agent
+from google import genai
+from google.genai import types
 
-from mongodb_groceries_agent.embeddings import embed_query
 from mongodb_groceries_agent.utils import set_env
 
+# set_env puts GOOGLE_API_KEY and CONNECTION_STRING in the environment, so it
+# has to run before anything that reads them.
 PASSKEY = "<ASK YOUR INSTRUCTOR FOR THE PASSKEY>"
 set_env(PASSKEY)
 
