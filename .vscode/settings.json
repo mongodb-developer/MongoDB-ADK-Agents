@@ -1,7 +1,7 @@
 {
     "mdb.presetConnections": [
         {
-            "name": "Groceries Database",
+            "name": "Groceries Cluster",
             "connectionString": "mongodb://admin:mongodb@localhost:27017"
         }
     ]
