@@ -17,7 +17,7 @@ CONNECTION_STRING = os.environ.get("CONNECTION_STRING")
 # An agent with no tools at all. It cannot reach the inventory, so watch what it
 # does when you ask it for a product.
 root_agent = Agent(
-    model="gemini-3.8-flash",
+    model="gemini-3.5-flash",
     name="grocery_shopping_agent",
     description="Helps shoppers find groceries.",
     instruction="",

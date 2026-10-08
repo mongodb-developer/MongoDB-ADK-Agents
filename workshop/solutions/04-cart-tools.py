@@ -241,7 +241,7 @@ Remember: you are a professional yet friendly shopping assistant whose goal is t
 
 
 root_agent = Agent(
-    model="gemini-3.8-flash",
+    model="gemini-3.5-flash",
     name="grocery_shopping_agent",
     description=(
         "Helps shoppers find groceries, answer questions about them, and manage "

@@ -69,7 +69,7 @@ CONSTANTS_SEARCH_ONLY = (
 BARE_AGENT = '''# An agent with no tools at all. It cannot reach the inventory, so watch what it
 # does when you ask it for a product.
 root_agent = Agent(
-    model="gemini-3.8-flash",
+    model="gemini-3.5-flash",
     name="grocery_shopping_agent",
     description="Helps shoppers find groceries.",
     instruction="",
@@ -108,7 +108,7 @@ Remember: you are a professional yet friendly shopping assistant whose goal is t
 '''
 
 SEARCH_ONLY_AGENT = '''root_agent = Agent(
-    model="gemini-3.8-flash",
+    model="gemini-3.5-flash",
     name="grocery_shopping_agent",
     description="Helps shoppers find groceries.",
     instruction=instruction,
