@@ -42,6 +42,29 @@ index_definition = {
     },
 }
 
+# Check the declaration against the data before creating anything. A dimension
+# mismatch is not an error: mongot silently skips every document whose vector is
+# a different length, so the index reports READY and queryable over nothing, and
+# searches come back empty with no clue why.
+sample = collection.find_one({}, {index_definition["definition"]["fields"][0]["path"]: 1})
+if not sample:
+    raise SystemExit(f"{DATABASE_NAME}.{COLLECTION_NAME} is empty.")
+
+field = index_definition["definition"]["fields"][0]["path"]
+stored = sample.get(field)
+if stored is None:
+    raise SystemExit(
+        f"No '{field}' field in {DATABASE_NAME}.{COLLECTION_NAME}. "
+        f"Document has: {', '.join(k for k in sample if k != '_id')}"
+    )
+
+declared = index_definition["definition"]["fields"][0]["numDimensions"]
+if len(stored) != declared:
+    raise SystemExit(
+        f"numDimensions is {declared} but '{field}' holds {len(stored)} numbers. "
+        f"Set numDimensions to {len(stored)} and run this again."
+    )
+
 print("Creating the vector search index...")
 collection.create_search_index(index_definition)
 
