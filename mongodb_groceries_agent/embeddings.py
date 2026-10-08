@@ -18,7 +18,21 @@ from google.genai import types
 EMBEDDING_MODEL = "gemini-embedding-2"
 EMBEDDING_DIMENSIONS = 1536
 
-genai_client = genai.Client()
+_genai_client = None
+
+
+def _client() -> genai.Client:
+    """The GenAI client, built on first use.
+
+    Not built at import time on purpose. The workshop agent calls
+    set_env(PASSKEY) to put GOOGLE_API_KEY in the environment, and that runs
+    after this module is imported. genai.Client() raises if no key is set yet,
+    so constructing one here would break the import that sets the key.
+    """
+    global _genai_client
+    if _genai_client is None:
+        _genai_client = genai.Client()
+    return _genai_client
 
 
 def embed_documents(documents: list[dict]) -> list[list[float]]:
@@ -37,7 +51,7 @@ def embed_documents(documents: list[dict]) -> list[list[float]]:
     # One Content per input, each holding a single Part. Several Parts inside one
     # Content are aggregated into a single vector instead, with no error, so the
     # nesting here is load-bearing rather than ceremony.
-    result = genai_client.models.embed_content(
+    result = _client().models.embed_content(
         model=EMBEDDING_MODEL,
         contents=[
             types.Content(parts=[types.Part.from_text(text=text)]) for text in texts
@@ -59,7 +73,7 @@ def embed_query(query: str) -> list[float]:
     # gemini-embedding-2 has no task_type parameter. The task goes in the text,
     # and the query prefix has to pair with the document prefix used above —
     # otherwise queries and documents land in different regions of the space.
-    result = genai_client.models.embed_content(
+    result = _client().models.embed_content(
         model=EMBEDDING_MODEL,
         contents=f"task: search result | query: {query}",
         config=types.EmbedContentConfig(output_dimensionality=EMBEDDING_DIMENSIONS),
